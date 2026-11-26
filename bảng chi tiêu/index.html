@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tối ưu tiêu đề & mô tả tìm kiếm Google gắn với tên Phan Hải Đăng -->
+    <title>đăng kỉ luật và kỉ luật</title>
+    <meta
+      name="description"
+      content="Sổ Thu Chi Pro của Phan Hải Đăng — Ứng dụng web quản lý chi tiêu hàng tháng, theo dõi dòng tiền thu chi và kiểm soát ngân sách cá nhân trực quan."
+    />
+    <meta
+      name="keywords"
+      content="Phan Hải Đăng, Đăng, sổ thu chi của Đăng, quản lý chi tiêu Đăng, quản lý tài chính cá nhân, web quản lý chi tiêu"
+    />
+    <meta name="author" content="Phan Hải Đăng" />
+
+    <!-- Thẻ hiển thị đẹp khi chia sẻ link lên Facebook, Zalo -->
+    <meta
+      property="og:title"
+      content="Sổ Thu Chi của Đăng — Quản Lý Chi Tiêu Cá Nhân"
+    />
+    <meta
+      property="og:description"
+      content="Công cụ quản lý thu chi, lập hạn mức ngân sách và thống kê dòng tiền hàng tháng của Phan Hải Đăng."
+    />
+    <meta property="og:type" content="website" />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Thanh điều hướng trên cùng -->
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-logo">₫</div>
+          <div>
+            <h1>Sổ Thu Chi của Đăng</h1>
+            <span>Quản lý dòng tiền & ngân sách cá nhân — Phan Hải Đăng</span>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="month-picker-wrap">
+            <label for="month-filter">Kỳ báo cáo:</label>
+            <input type="month" id="month-filter" />
+          </div>
+          <button
+            id="export-csv-btn"
+            class="btn btn-outline"
+            title="Tải xuống file Excel/CSV"
+          >
+            Xuất CSV
+          </button>
+          <button
+            id="reset-demo-btn"
+            class="btn btn-ghost"
+            title="Khôi phục dữ liệu mẫu"
+          >
+            Dữ liệu mẫu
+          </button>
+        </div>
+      </header>
+
+      <!-- 4 Thẻ chỉ số tổng quan (KPI Cards) -->
+      <section class="kpi-grid">
+        <div class="kpi-card balance-card">
+          <div class="kpi-header">
+            <span>Số dư hiện tại (Kỳ này)</span>
+            <span class="kpi-badge" id="saving-rate-badge">Tiết kiệm 0%</span>
+          </div>
+          <div class="kpi-value" id="kpi-balance">0 ₫</div>
+          <div class="kpi-sub" id="kpi-balance-note">
+            Cân đối thu chi trong tháng
+          </div>
+        </div>
+
+        <div class="kpi-card income-card">
+          <div class="kpi-header">
+            <span>Tổng thu nhập</span>
+            <span class="kpi-icon income-icon">↓</span>
+          </div>
+          <div class="kpi-value text-income" id="kpi-income">0 ₫</div>
+          <div class="kpi-sub" id="kpi-income-count">0 khoản thu</div>
+        </div>
+
+        <div class="kpi-card expense-card">
+          <div class="kpi-header">
+            <span>Tổng chi tiêu</span>
+            <span class="kpi-icon expense-icon">↑</span>
+          </div>
+          <div class="kpi-value text-expense" id="kpi-expense">0 ₫</div>
+          <div class="kpi-sub" id="kpi-expense-count">0 khoản chi</div>
+        </div>
+
+        <div class="kpi-card budget-card">
+          <div class="kpi-header">
+            <span>Hạn mức chi tháng</span>
+            <button id="edit-budget-btn" class="btn-link">Sửa hạn mức</button>
+          </div>
+          <div class="kpi-value" id="kpi-budget-left">0 ₫</div>
+          <div class="budget-mini-bar">
+            <div id="kpi-budget-fill" class="budget-mini-fill"></div>
+          </div>
+          <div class="kpi-sub" id="kpi-budget-text">
+            Đã dùng 0% trên tổng hạn mức
+          </div>
+        </div>
+      </section>
+
+      <!-- Khu vực nội dung chính 2 cột -->
+      <main class="main-grid">
+        <!-- Cột trái: Thêm giao dịch nhanh & Cơ cấu chi tiêu -->
+        <div class="left-column">
+          <!-- Form nhập giao dịch -->
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Ghi chép giao dịch mới</h2>
+            </div>
+
+            <form id="transaction-form" class="tx-form">
+              <div class="type-switch">
+                <button
+                  type="button"
+                  class="type-btn active expense"
+                  data-type="expense"
+                >
+                  - Khoản chi
+                </button>
+                <button
+                  type="button"
+                  class="type-btn income"
+                  data-type="income"
+                >
+                  + Khoản thu
+                </button>
+              </div>
+
+              <div class="form-group">
+                <label for="tx-amount">Số tiền (VNĐ)</label>
+                <div class="amount-input-wrap">
+                  <input
+                    type="number"
+                    id="tx-amount"
+                    placeholder="Ví dụ: 50000"
+                    min="1000"
+                    step="1000"
+                    required
+                  />
+                  <span class="unit">₫</span>
+                </div>
+                <div class="quick-amounts">
+                  <button type="button" data-add="20000">+20k</button>
+                  <button type="button" data-add="50000">+50k</button>
+                  <button type="button" data-add="100000">+100k</button>
+                  <button type="button" data-add="500000">+500k</button>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tx-category">Danh mục</label>
+                  <select id="tx-category" required></select>
+                </div>
+
+                <div class="form-group">
+                  <label for="tx-date">Ngày giao dịch</label>
+                  <input type="date" id="tx-date" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tx-wallet">Nguồn tiền</label>
+                  <select id="tx-wallet">
+                    <option value="Tiền mặt">Tiền mặt</option>
+                    <option value="Chuyển khoản">Tài khoản ngân hàng</option>
+                    <option value="Ví điện tử">
+                      Ví điện tử (MoMo/ZaloPay)
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="tx-note">Ghi chú</label>
+                  <input
+                    type="text"
+                    id="tx-note"
+                    placeholder="Ăn trưa, đổ xăng..."
+                  />
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                Lưu giao dịch
+              </button>
+            </form>
+          </section>
+
+          <!-- Biểu đồ tròn & Phân bổ theo danh mục -->
+          <section class="panel">
+            <div class="panel-header">
+              <h2>Cơ cấu chi tiêu theo danh mục</h2>
+            </div>
+
+            <div class="chart-area">
+              <div class="donut-wrapper">
+                <canvas id="expense-chart" width="200" height="200"></canvas>
+                <div class="donut-center">
+                  <span>Tổng chi</span>
+                  <strong id="donut-total">0₫</strong>
+                </div>
+              </div>
+              <div id="category-breakdown" class="breakdown-list"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Cột phải: Lịch sử giao dịch & Bộ lọc -->
+        <div class="right-column">
+          <section class="panel full-height">
+            <div class="panel-header wrap-header">
+              <h2>Sổ nhật ký giao dịch</h2>
+              <div class="filter-controls">
+                <input
+                  type="text"
+                  id="search-input"
+                  placeholder="Tìm ghi chú, danh mục..."
+                  class="search-box"
+                />
+                <select id="type-filter" class="filter-select">
+                  <option value="all">Tất cả giao dịch</option>
+                  <option value="expense">Chỉ khoản chi</option>
+                  <option value="income">Chỉ khoản thu</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="transaction-list" class="tx-list"></div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Chân trang chứa thông tin tác giả để Google nhận diện từ khóa -->
+      <footer
+        style="
+          text-align: center;
+          padding: 12px 0 4px;
+          font-size: 0.85rem;
+          color: #64748b;
+        "
+      >
+        <p>
+          Phát triển bởi <strong>Phan Hải Đăng</strong> • Ứng dụng Quản Lý Chi
+          Tiêu & Sổ Thu Chi Cá Nhân.
+        </p>
+      </footer>
+    </div>
+
+    <!-- Modal chỉnh sửa hạn mức ngân sách -->
+    <div id="budget-modal" class="modal-backdrop hidden">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3>Thiết lập hạn mức chi tiêu tháng</h3>
+          <button id="close-modal-btn" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label for="monthly-budget-input"
+            >Hạn mức chi tiêu tối đa trong tháng (VNĐ):</label
+          >
+          <input
+            type="number"
+            id="monthly-budget-input"
+            min="0"
+            step="100000"
+          />
+          <p class="modal-hint">
+            Hệ thống sẽ cảnh báo khi tổng chi tiêu vượt quá 80% và 100% hạn mức
+            này.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="save-budget-btn" class="btn btn-primary">
+            Lưu hạn mức
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
